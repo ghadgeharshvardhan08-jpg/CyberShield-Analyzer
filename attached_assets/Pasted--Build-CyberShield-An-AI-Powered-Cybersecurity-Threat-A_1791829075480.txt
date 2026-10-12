@@ -1,0 +1,144 @@
+# Build CyberShield — An AI-Powered Cybersecurity Threat Analysis Platform
+
+Act as a senior full-stack developer, cybersecurity engineer, UI/UX designer, and software architect. Build a complete, professional, production-minded web application called **CyberShield** that I can showcase on my resume, GitHub, internship applications, and future Master's applications in Computer Science or Cybersecurity.
+
+## 1. Project objective
+
+Create an educational cybersecurity platform that helps users identify suspicious URLs, understand phishing risks, analyze security indicators, and learn cybersecurity best practices.
+
+This must be a functional software project, not just a static UI prototype.
+
+## 2. Technology stack
+
+Use the following technologies:
+
+- Frontend: React with TypeScript and Vite.
+- Styling: Tailwind CSS with a polished, responsive design.
+- UI components: Accessible, reusable components with Lucide icons.
+- Backend: Python with FastAPI.
+- Database: PostgreSQL for persistent data, with SQLite as an optional local-development fallback.
+- Data visualization: Recharts.
+- Testing: Pytest for the backend and Vitest for frontend components.
+- Documentation: Markdown, API documentation, and a complete README.
+- Deployment: Provide deployment instructions for a suitable frontend host and a Python backend host.
+
+Use stable, compatible dependencies and provide all necessary configuration files.
+
+## 3. Core features
+
+### A. URL threat analyzer
+- Allow users to submit a URL for analysis.
+- Validate URL format and normalize input safely.
+- Detect suspicious indicators, including misleading domain patterns, unusual URL encoding, IP-address-based hosts, excessive subdomains, suspicious keywords, and non-HTTPS connections.
+- Distinguish between detected indicators and confirmed threats.
+- Produce a transparent risk score from 0 to 100 using documented rules.
+- Show a risk category: Low, Medium, High, or Critical.
+- Explain every finding in simple language.
+- Never claim that a URL is completely safe just because no indicators were detected.
+- Do not automatically open, crawl, or visit submitted URLs.
+
+### B. Security dashboard
+- Display total analyses, risk-category distribution, recent scans, and trends over time.
+- Include interactive charts, summary cards, filters, and searchable analysis history.
+- Use genuine stored application data rather than fabricated statistics.
+- Show a helpful empty state when there is no data.
+
+### C. Security report generator
+- Generate downloadable PDF reports.
+- Include the submitted URL, timestamp, detected indicators, risk score, explanations, and recommendations.
+- Clearly label the results as an automated preliminary assessment, not a guarantee or a professional security audit.
+
+### D. Cybersecurity learning center
+- Create learning modules covering phishing, social engineering, password security, ransomware, malware, and safe browsing.
+- Add multiple-choice quizzes with explanations.
+- Track completed lessons and quiz scores.
+- Use original educational content and practical examples.
+
+### E. User accounts and history
+- Implement secure registration, login, logout, and password hashing.
+- Keep each user's scan history private.
+- Validate and authorize all API requests.
+- Use environment variables for secrets.
+- Include rate limiting and sensible request-size limits.
+
+### F. Security and privacy
+- Protect against common web vulnerabilities, including injection, cross-site scripting, broken access control, and insecure authentication.
+- Prevent server-side request forgery by never fetching arbitrary submitted URLs.
+- Avoid storing sensitive personal information unnecessarily.
+- Add clear privacy notices and safe error messages.
+- Never expose API keys, database credentials, or secret configuration values in frontend code.
+- Do not add offensive scanning, exploitation, or unauthorized-access functionality.
+
+## 4. Design requirements
+
+Create a premium cybersecurity SaaS interface inspired by professional security operations dashboards.
+
+Visual style:
+- Dark navy background with restrained cyan and violet accents.
+- Modern typography and clear information hierarchy.
+- Clean dashboard cards, subtle borders, and tasteful animations.
+- Responsive layouts for desktop, tablet, and mobile.
+- Accessible forms, keyboard navigation, and readable contrast.
+- Professional loading states, error messages, tooltips, and empty states.
+- Light and dark theme support if practical.
+
+Pages:
+1. Landing page.
+2. Login and registration.
+3. Security dashboard.
+4. URL analyzer.
+5. Analysis details.
+6. Scan history.
+7. Downloadable reports.
+8. Cybersecurity learning center.
+9. Quiz page.
+10. User settings and privacy information.
+
+## 5. Software engineering requirements
+
+- Use a clean, maintainable folder structure.
+- Separate frontend components, business logic, API services, backend routes, models, and database operations.
+- Define and document the risk-scoring algorithm.
+- Validate all inputs on both frontend and backend.
+- Add useful automated tests for risk scoring, URL parsing, authentication, authorization, and API error handling.
+- Include realistic sample data only when explicitly marked as demo data.
+- Provide database migrations and a reproducible setup.
+- Include a .env.example file containing placeholders, never real credentials.
+- Implement proper logging without recording passwords, tokens, or other secrets.
+- Add meaningful comments for complex security logic.
+
+## 6. Deliverables
+
+Provide:
+1. A complete working source-code project.
+2. The full directory structure.
+3. All required frontend and backend files.
+4. Database schema and migrations.
+5. Sample environment configuration.
+6. Automated tests and instructions for running them.
+7. A detailed README with setup, architecture, features, limitations, and screenshots to capture.
+8. An API endpoint reference.
+9. Local development instructions for Windows.
+10. Deployment instructions and a GitHub publishing checklist.
+11. A project architecture diagram in Mermaid format.
+12. Suggested resume bullet points describing the actual implemented features.
+
+## 7. Implementation workflow
+
+Do not attempt to generate the entire application in one enormous response.
+
+First, provide:
+- Architecture and technical decisions.
+- Folder structure.
+- Database design.
+- API endpoint plan.
+- Threat-scoring methodology.
+- A phased implementation plan.
+
+Then implement the project in manageable phases. Finish each phase with complete files, installation commands, and tests. Keep track of created files and do not replace working features with placeholders.
+
+Start with a minimal working application, then add authentication, database persistence, the analysis engine, dashboard, reports, learning center, and deployment configuration.
+
+Before declaring the project complete, run the available tests, fix errors, review security-sensitive code, and document any limitations. Never claim that a test passed unless it was actually run.
+
+The final result should demonstrate genuine software engineering and cybersecurity knowledge suitable for a second-year BSc Computer Science student applying for internships and future Master's programs.

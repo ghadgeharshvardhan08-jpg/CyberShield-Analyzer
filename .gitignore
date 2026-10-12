@@ -31,6 +31,17 @@ node_modules
 /.sass-cache
 /connect.lock
 /coverage
+/artifacts/api-server/.venv/
+/artifacts/api-server/.env
+/artifacts/api-server/cybershield.db
+/artifacts/api-server/cybershield.db-*
+/artifacts/api-server/.pytest_cache/
+/artifacts/api-server/.coverage
+/artifacts/api-server/.pythonlibs/
+/.pythonlibs/
+**/.env
+__pycache__/
+*.py[cod]
 /libpeerconnection.log
 npm-debug.log
 yarn-error.log

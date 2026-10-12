@@ -1,22 +1,25 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
+  # Do not change the title; generated import paths depend on it.
   title: Api
   version: 0.1.0
-  description: API specification
+  description: CyberShield API for private educational URL risk assessments.
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
-    description: Health operations
+  - name: auth
+  - name: analyses
+  - name: dashboard
+  - name: learning
+  - name: settings
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
-      summary: Health check
-      description: Returns server health status
+      summary: Check API health
       responses:
         "200":
           description: Healthy
@@ -24,13 +27,575 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /auth/session:
+    get:
+      operationId: getSession
+      tags: [auth]
+      summary: Get the current session
+      responses:
+        "200":
+          description: Session state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionState"
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Create an account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInput"
+      responses:
+        "201":
+          description: Account created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionState"
+        "400":
+          $ref: "#/components/responses/ApiError"
+        "429":
+          $ref: "#/components/responses/ApiError"
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Sign in
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Signed in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionState"
+        "401":
+          $ref: "#/components/responses/ApiError"
+        "429":
+          $ref: "#/components/responses/ApiError"
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: End the current session
+      responses:
+        "200":
+          description: Signed out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessMessage"
+  /auth/account:
+    delete:
+      operationId: deleteAccount
+      tags: [auth]
+      summary: Delete the current account and its private data
+      security:
+        - sessionCookie: []
+      responses:
+        "200":
+          description: Account and owned data deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessMessage"
+        "401":
+          $ref: "#/components/responses/ApiError"
+  /dashboard:
+    get:
+      operationId: getDashboard
+      tags: [dashboard]
+      summary: Get private dashboard totals and recent activity
+      security:
+        - sessionCookie: []
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+        "401":
+          $ref: "#/components/responses/ApiError"
+  /analyses:
+    get:
+      operationId: listAnalyses
+      tags: [analyses]
+      summary: Search and filter the current user's analyses
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+            maxLength: 200
+        - name: category
+          in: query
+          schema:
+            $ref: "#/components/schemas/RiskCategory"
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        "200":
+          description: Matching analyses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Analysis"
+        "401":
+          $ref: "#/components/responses/ApiError"
+    post:
+      operationId: createAnalysis
+      tags: [analyses]
+      summary: Analyze a URL without visiting or fetching it
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnalysisInput"
+      responses:
+        "201":
+          description: Preliminary automated assessment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Analysis"
+        "400":
+          $ref: "#/components/responses/ApiError"
+        "401":
+          $ref: "#/components/responses/ApiError"
+        "413":
+          $ref: "#/components/responses/ApiError"
+        "429":
+          $ref: "#/components/responses/ApiError"
+  /analyses/{analysisId}:
+    get:
+      operationId: getAnalysis
+      tags: [analyses]
+      summary: Get one private analysis
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: analysisId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: Analysis details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Analysis"
+        "401":
+          $ref: "#/components/responses/ApiError"
+        "404":
+          $ref: "#/components/responses/ApiError"
+  /analyses/{analysisId}/report:
+    get:
+      operationId: getAnalysisReport
+      tags: [analyses]
+      summary: Download a private preliminary PDF report
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: analysisId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: Downloadable preliminary assessment
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "401":
+          $ref: "#/components/responses/ApiError"
+        "404":
+          $ref: "#/components/responses/ApiError"
+  /learning/modules:
+    get:
+      operationId: listLessons
+      tags: [learning]
+      summary: List lessons and completion status
+      security:
+        - sessionCookie: []
+      responses:
+        "200":
+          description: Learning modules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Lesson"
+        "401":
+          $ref: "#/components/responses/ApiError"
+  /learning/modules/{slug}:
+    get:
+      operationId: getLesson
+      tags: [learning]
+      summary: Get lesson content and quiz questions
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 80
+      responses:
+        "200":
+          description: Lesson content and quiz
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LessonDetail"
+        "401":
+          $ref: "#/components/responses/ApiError"
+        "404":
+          $ref: "#/components/responses/ApiError"
+  /learning/modules/{slug}/quiz:
+    post:
+      operationId: submitQuiz
+      tags: [learning]
+      summary: Submit a lesson quiz and persist the score
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 80
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuizSubmission"
+      responses:
+        "200":
+          description: Score with answer explanations
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizResult"
+        "400":
+          $ref: "#/components/responses/ApiError"
+        "401":
+          $ref: "#/components/responses/ApiError"
+        "404":
+          $ref: "#/components/responses/ApiError"
+  /learning/progress:
+    get:
+      operationId: getLearningProgress
+      tags: [learning]
+      summary: Get current user's lesson progress
+      security:
+        - sessionCookie: []
+      responses:
+        "200":
+          description: Progress summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LearningProgress"
+        "401":
+          $ref: "#/components/responses/ApiError"
+  /settings:
+    get:
+      operationId: getSettings
+      tags: [settings]
+      summary: Get account settings and privacy information
+      security:
+        - sessionCookie: []
+      responses:
+        "200":
+          description: Current settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Settings"
+        "401":
+          $ref: "#/components/responses/ApiError"
+    patch:
+      operationId: updateSettings
+      tags: [settings]
+      summary: Update editable account settings
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SettingsUpdate"
+      responses:
+        "200":
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Settings"
+        "400":
+          $ref: "#/components/responses/ApiError"
+        "401":
+          $ref: "#/components/responses/ApiError"
 components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: cybershield_session
+  responses:
+    ApiError:
+      description: Safe error response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
   schemas:
     HealthStatus:
       type: object
       properties:
         status:
           type: string
-      required:
-        - status
-
+      required: [status]
+    ApiError:
+      type: object
+      properties:
+        detail:
+          type: string
+      required: [detail]
+    SuccessMessage:
+      type: object
+      properties:
+        message:
+          type: string
+      required: [message]
+    User:
+      type: object
+      properties:
+        id: { type: integer }
+        email: { type: string }
+        displayName: { type: string }
+        createdAt: { type: string, format: date-time }
+      required: [id, email, displayName, createdAt]
+    SessionState:
+      type: object
+      properties:
+        authenticated: { type: boolean }
+        user:
+          anyOf:
+            - $ref: "#/components/schemas/User"
+            - type: "null"
+      required: [authenticated, user]
+    RegisterInput:
+      type: object
+      properties:
+        email: { type: string, format: email, maxLength: 254 }
+        displayName: { type: string, minLength: 1, maxLength: 80 }
+        password: { type: string, minLength: 12, maxLength: 128 }
+      required: [email, displayName, password]
+    LoginInput:
+      type: object
+      properties:
+        email: { type: string, format: email, maxLength: 254 }
+        password: { type: string, minLength: 1, maxLength: 128 }
+      required: [email, password]
+    RiskCategory:
+      type: string
+      enum: [Low, Medium, High, Critical]
+    Finding:
+      type: object
+      properties:
+        code: { type: string }
+        title: { type: string }
+        description: { type: string }
+        points: { type: integer }
+        severity: { type: string, enum: [info, low, medium, high] }
+      required: [code, title, description, points, severity]
+    AnalysisInput:
+      type: object
+      properties:
+        url: { type: string, minLength: 1, maxLength: 2048 }
+      required: [url]
+    Analysis:
+      type: object
+      properties:
+        id: { type: integer }
+        url: { type: string }
+        normalizedUrl: { type: string }
+        score: { type: integer, minimum: 0, maximum: 100 }
+        category: { $ref: "#/components/schemas/RiskCategory" }
+        findings:
+          type: array
+          items: { $ref: "#/components/schemas/Finding" }
+        recommendation: { type: string }
+        createdAt: { type: string, format: date-time }
+      required: [id, url, normalizedUrl, score, category, findings, recommendation, createdAt]
+    RiskCount:
+      type: object
+      properties:
+        category: { $ref: "#/components/schemas/RiskCategory" }
+        count: { type: integer }
+      required: [category, count]
+    DailyCount:
+      type: object
+      properties:
+        date: { type: string, format: date }
+        count: { type: integer }
+      required: [date, count]
+    DashboardSummary:
+      type: object
+      properties:
+        totalAnalyses: { type: integer }
+        distribution:
+          type: array
+          items: { $ref: "#/components/schemas/RiskCount" }
+        trend:
+          type: array
+          items: { $ref: "#/components/schemas/DailyCount" }
+        recentAnalyses:
+          type: array
+          items: { $ref: "#/components/schemas/Analysis" }
+        highRiskCount: { type: integer }
+      required: [totalAnalyses, distribution, trend, recentAnalyses, highRiskCount]
+    Lesson:
+      type: object
+      properties:
+        slug: { type: string }
+        title: { type: string }
+        topic: { type: string }
+        summary: { type: string }
+        minutes: { type: integer }
+        completed: { type: boolean }
+        bestScore: { type: ["integer", "null"] }
+      required: [slug, title, topic, summary, minutes, completed, bestScore]
+    QuizOption:
+      type: object
+      properties:
+        label: { type: string }
+        text: { type: string }
+      required: [label, text]
+    QuizQuestion:
+      type: object
+      properties:
+        id: { type: string }
+        prompt: { type: string }
+        options:
+          type: array
+          items: { $ref: "#/components/schemas/QuizOption" }
+      required: [id, prompt, options]
+    LessonSection:
+      type: object
+      properties:
+        heading: { type: string }
+        body: { type: string }
+        keyTakeaway: { type: string }
+      required: [heading, body, keyTakeaway]
+    LessonDetail:
+      type: object
+      properties:
+        slug: { type: string }
+        title: { type: string }
+        topic: { type: string }
+        summary: { type: string }
+        minutes: { type: integer }
+        sections:
+          type: array
+          items: { $ref: "#/components/schemas/LessonSection" }
+        questions:
+          type: array
+          items: { $ref: "#/components/schemas/QuizQuestion" }
+        completed: { type: boolean }
+        bestScore: { type: ["integer", "null"] }
+      required: [slug, title, topic, summary, minutes, sections, questions, completed, bestScore]
+    QuizAnswer:
+      type: object
+      properties:
+        questionId: { type: string }
+        selectedOption: { type: integer, minimum: 0, maximum: 5 }
+      required: [questionId, selectedOption]
+    QuizSubmission:
+      type: object
+      properties:
+        answers:
+          type: array
+          minItems: 1
+          maxItems: 20
+          items: { $ref: "#/components/schemas/QuizAnswer" }
+      required: [answers]
+    QuizFeedback:
+      type: object
+      properties:
+        questionId: { type: string }
+        correct: { type: boolean }
+        correctOption: { type: integer }
+        explanation: { type: string }
+      required: [questionId, correct, correctOption, explanation]
+    QuizResult:
+      type: object
+      properties:
+        score: { type: integer, minimum: 0, maximum: 100 }
+        correctAnswers: { type: integer }
+        totalQuestions: { type: integer }
+        passed: { type: boolean }
+        feedback:
+          type: array
+          items: { $ref: "#/components/schemas/QuizFeedback" }
+      required: [score, correctAnswers, totalQuestions, passed, feedback]
+    LearningProgress:
+      type: object
+      properties:
+        completedLessons: { type: integer }
+        totalLessons: { type: integer }
+        averageScore: { type: ["number", "null"] }
+      required: [completedLessons, totalLessons, averageScore]
+    Settings:
+      type: object
+      properties:
+        email: { type: string, format: email }
+        displayName: { type: string }
+        createdAt: { type: string, format: date-time }
+      required: [email, displayName, createdAt]
+    SettingsUpdate:
+      type: object
+      properties:
+        displayName: { type: string, minLength: 1, maxLength: 80 }
